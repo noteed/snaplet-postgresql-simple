@@ -32,6 +32,7 @@ automatically be created for you the first time you run your application.
 
 module Snap.Snaplet.Auth.Backends.PostgresqlSimple
   ( initPostgresAuth
+  , createTable
   ) where
 
 ------------------------------------------------------------------------------
@@ -109,15 +110,21 @@ createTableIfMissing PostgresAuthManager{..} = do
           "select relname from pg_class where relname='"
           `T.append` schemaless (tblName pamTable) `T.append` "'"
         when (null (res :: [Only T.Text])) $
-          void (P.execute_ conn (Query $ T.encodeUtf8 q))
+          createTable conn pamTable
     return ()
   where
     schemaless = T.reverse . T.takeWhile (/='.') . T.reverse
+
+-- | Create the user table. This is done automatically when `initPostgresAuth`
+-- is called.
+createTable :: P.Connection -> AuthTable -> IO ()
+createTable conn table = P.execute_ conn (Query $ T.encodeUtf8 q) >> return ()
+  where
     q = T.concat
           [ "CREATE TABLE \""
-          , tblName pamTable
+          , tblName table
           , "\" ("
-          , T.intercalate "," (map (fDesc . ($pamTable) . fst) colDef)
+          , T.intercalate "," (map (fDesc . ($table) . fst) $ colDef)
           , ")"
           ]
 
