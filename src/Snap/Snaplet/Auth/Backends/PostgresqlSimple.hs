@@ -33,6 +33,8 @@ automatically be created for you the first time you run your application.
 module Snap.Snaplet.Auth.Backends.PostgresqlSimple
   ( initPostgresAuth
   , createTable
+  , defAuthTable
+  , AuthTable(..)
   ) where
 
 ------------------------------------------------------------------------------
